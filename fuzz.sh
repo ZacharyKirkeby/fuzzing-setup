@@ -24,13 +24,13 @@ AFL_SKIP_CPUFREQ=1 \
 afl-fuzz -d \
   -i "$SEED_DIR" \
   -o findings \
-  -N tcp://127.0.0.1/1502 \
-  -P MODBUS \
-  -D 10000 \
+  -N tcp \            # protocol
+  -P 1502 \           # port number
   -q 3 \
   -s 3 \
+  -D 10000 \
   -E \
   -K \
   -R \
   -x modbus.dict \
-  -- "$TARGET"
+  -- "$TARGET" 127.0.0.1 1502  # pass the server args here
