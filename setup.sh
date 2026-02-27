@@ -19,7 +19,7 @@ echo "[+] Installing dependencies..."
 sudo pacman -Syu --noconfirm
 sudo pacman -S --noconfirm \
   base-devel git cmake make autoconf automake libtool pkgconf \
-  aflplusplus llvm clang gdb strace ltrace tcpdump
+  afl++ llvm clang gdb strace ltrace tcpdump
 
 echo "[+] Creating workspace..."
 mkdir -p "$WORKDIR"
