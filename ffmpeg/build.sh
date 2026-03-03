@@ -28,24 +28,31 @@ git checkout n6.1
 
 echo "[*] Cleaning..."
 make distclean || true
-
+export CC=afl-clang-fast
+export CXX=afl-clang-fast++
+export AFL_USE_ASAN=1
 echo "[*] Configuring AFL++ build..."
-CC=afl-clang-fast \
-CXX=afl-clang-fast++ \
 ./configure \
   --disable-everything \
   --enable-demuxer=matroska \
   --enable-protocol=file \
   --disable-network \
-  --disable-pthreads \
   --disable-doc \
   --disable-programs \
   --disable-asm \
+  --disable-hwaccels \
+  --disable-vaapi \
+  --disable-vdpau \
+  --disable-vulkan \
+  --disable-cuda \
+  --disable-cuvid \
+  --disable-nvenc \
+  --disable-d3d11va \
+  --disable-dxva2 \
   --enable-static \
   --disable-shared \
   --disable-debug \
   --enable-small
-
 make -j$(nproc)
 
 cd ..
