@@ -99,16 +99,16 @@ make -j"$(nproc)"
 cd ..
 
 echo "[*] Copying target.c..."
-if [ ! -f ../target.c ]; then
-    echo "[-] target.c not found in parent directory"
+if [ ! -f ../target2.c ]; then
+    echo "[-] target2.c not found in parent directory"
     exit 1
 fi
-cp ../target.c .
+cp ../target2.c .
 
 echo "[*] Building harness..."
 afl-clang-fast \
     -g -fno-omit-frame-pointer \
-    target.c \
+    target2.c \
     FFmpeg/libavformat/libavformat.a \
     FFmpeg/libavcodec/libavcodec.a \
     FFmpeg/libswresample/libswresample.a \

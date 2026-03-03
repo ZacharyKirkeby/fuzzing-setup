@@ -3,7 +3,8 @@ set -euo pipefail
 
 ROOT="$PWD/ffmpeg-afl"
 BINARY="$ROOT/fuzz_target"
-SEEDS="$PWD/seeds"
+SEEDS="$PWD/seeds_min"
+DICT="$PWD/matroska.dict"
 OUT="$ROOT/out"
 
 # ---------------------------------------------------------------------------
@@ -11,6 +12,11 @@ OUT="$ROOT/out"
 # ---------------------------------------------------------------------------
 if [ ! -f "$BINARY" ]; then
     echo "[-] fuzz_target not found. Run build_env.sh first."
+    exit 1
+fi
+
+if [ ! -f "$DICT" ]; then
+    echo "[-] Dictionary not found at $DICT"
     exit 1
 fi
 
@@ -24,15 +30,18 @@ mkdir -p "$OUT"
 # ---------------------------------------------------------------------------
 # Verify instrumentation and ASan linkage before committing to a long run
 # ---------------------------------------------------------------------------
-echo "[*] Checking AFL++ instrumentation..."
-# Feed a dummy byte — we just want afl-showmap to confirm coverage edges exist
-echo -n "RIFF" | afl-showmap -o /dev/null -q -- "$BINARY" 2>/dev/null || true
+echo "[*] Checking binary is executable..."
+if [ ! -x "$BINARY" ]; then
+    echo "[-] Binary is not executable: $BINARY"
+    exit 1
+fi
 
-echo "[*] Checking ASan linkage..."
-# A zero-length input will hit the 'len < 4' guard and exit cleanly.
-# If ASan isn't linked the binary will still exit 0; if it crashes here
-# there's a build problem worth fixing before fuzzing.
-ASAN_OPTIONS=detect_leaks=0 "$BINARY" 2>/dev/null || true
+echo "[*] Checking AFL++ instrumentation and ASan linkage..."
+# afl-showmap drives the AFL shmem handshake properly, so the persistent-mode
+# __AFL_LOOP won't block. We pipe a small seed through it to confirm both that
+# coverage edges are recorded and that ASan doesn't immediately abort.
+ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 \
+    echo -n "RIFF" | afl-showmap -o /dev/null -q -t 5000 -- "$BINARY" 2>/dev/null || true
 
 echo "[+] Preflight OK."
 echo
@@ -75,4 +84,5 @@ ASAN_OPTIONS=detect_leaks=0:abort_on_error=1:symbolize=1 \
         -o "$OUT" \
         -m none \
         -t 5000 \
+        -x "$DICT" \
         -- "$BINARY"

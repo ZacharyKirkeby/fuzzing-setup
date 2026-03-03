@@ -1,0 +1,329 @@
+# =============================================================================
+# Matroska / WebM / EBML AFL++ Fuzzing Dictionary
+# Based on the EBML spec and Matroska spec (IETF RFC 9559)
+# Each token is a raw byte sequence AFL++ will splice into mutations.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# EBML Header magic — must appear at offset 0 of every valid file.
+# Without this, almost every mutation fails the very first header check.
+# -----------------------------------------------------------------------------
+ebml_magic="\x1a\x45\xdf\xa3"
+
+# -----------------------------------------------------------------------------
+# EBML Header elements
+# -----------------------------------------------------------------------------
+ebml_version="\x42\x86"
+ebml_read_version="\x42\xf7"
+ebml_max_id_length="\x42\xf2"
+ebml_max_size_length="\x42\xf3"
+ebml_doc_type="\x42\x82"
+ebml_doc_type_version="\x42\x87"
+ebml_doc_type_read_version="\x42\x85"
+
+# -----------------------------------------------------------------------------
+# DocType strings — UTF-8, inserted as token values
+# -----------------------------------------------------------------------------
+doctype_matroska="matroska"
+doctype_webm="webm"
+
+# -----------------------------------------------------------------------------
+# EBML variable-length integer (vint) size markers
+# These appear before every element body and are frequently worth targeting.
+# -----------------------------------------------------------------------------
+vint_1byte="\x80"
+vint_2byte="\x40\x00"
+vint_4byte="\x20\x00\x00\x00"
+vint_8byte="\x01\x00\x00\x00\x00\x00\x00\x00"
+vint_unknown_size="\x01\xff\xff\xff\xff\xff\xff\xff"
+
+# -----------------------------------------------------------------------------
+# Segment
+# -----------------------------------------------------------------------------
+segment="\x18\x53\x80\x67"
+seek_head="\x11\x4d\x9b\x74"
+seek="\x4d\xbb"
+seek_id="\x53\xab"
+seek_position="\x53\xac"
+
+# -----------------------------------------------------------------------------
+# Segment Info
+# -----------------------------------------------------------------------------
+info="\x15\x49\xa9\x66"
+segment_uid="\x73\xa4"
+segment_filename="\x73\x84"
+prev_uid="\x3c\xb9\x23"
+prev_filename="\x3c\x83\xab"
+next_uid="\x3e\xb9\x23"
+next_filename="\x3e\x83\xbb"
+timecode_scale="\x2a\xd7\xb1"
+duration="\x44\x89"
+date_utc="\x44\x61"
+title="\x7b\xa9"
+muxing_app="\x4d\x80"
+writing_app="\x57\x41"
+
+# -----------------------------------------------------------------------------
+# Cluster
+# -----------------------------------------------------------------------------
+cluster="\x1f\x43\xb6\x75"
+timestamp="\xe7"
+silent_tracks="\x58\x54"
+silent_track_number="\x58\xd7"
+position="\xa7"
+prev_size="\xab"
+simple_block="\xa3"
+block_group="\xa0"
+block="\xa1"
+block_virtual="\xa2"
+block_additions="\x75\xa1"
+block_more="\xa6"
+block_add_id="\xee"
+block_additional="\xa5"
+block_duration="\x9b"
+reference_priority="\xfa"
+reference_block="\xfb"
+reference_virtual="\xfd"
+codec_state="\xa4"
+discard_padding="\x75\xa2"
+slices="\x8e"
+time_slice="\xe8"
+lace_number="\xcc"
+
+# -----------------------------------------------------------------------------
+# Block flags (single byte, various lacing/keyframe combinations)
+# -----------------------------------------------------------------------------
+block_flag_keyframe="\x80"
+block_flag_invisible="\x08"
+block_flag_lacing_xiph="\x02"
+block_flag_lacing_fixed="\x04"
+block_flag_lacing_ebml="\x06"
+block_flag_discardable="\x01"
+
+# -----------------------------------------------------------------------------
+# Tracks
+# -----------------------------------------------------------------------------
+tracks="\x16\x54\xae\x6b"
+track_entry="\xae"
+track_number="\xd7"
+track_uid="\x73\xc5"
+track_type="\x83"
+flag_enabled="\xb9"
+flag_default="\x88"
+flag_forced="\x55\xaa"
+flag_hearing_impaired="\x55\xab"
+flag_visual_impaired="\x55\xac"
+flag_text_descriptions="\x55\xad"
+flag_original="\x55\xae"
+flag_commentary="\x55\xaf"
+flag_lacing="\x9c"
+min_cache="\x6d\xe7"
+max_cache="\x6d\xf8"
+default_duration="\x23\xe3\x83"
+default_decoded_field_duration="\x23\x4e\x7a"
+track_timecode_scale="\x23\x31\x4f"
+max_block_addition_id="\x55\xee"
+name="\x53\x6e"
+language="\x22\xb5\x9c"
+language_bcp47="\x22\xb5\x9d"
+codec_id="\x86"
+codec_private="\x63\xa2"
+codec_name="\x25\x86\x88"
+attachment_link="\x74\x46"
+codec_decode_all="\xaa"
+track_overlay="\x6f\xab"
+codec_delay="\x56\xaa"
+seek_pre_roll="\x56\xbb"
+track_translate="\x66\x24"
+
+# -----------------------------------------------------------------------------
+# Track types (1 byte values)
+# -----------------------------------------------------------------------------
+track_type_video="\x01"
+track_type_audio="\x02"
+track_type_complex="\x03"
+track_type_logo="\x10"
+track_type_subtitle="\x11"
+track_type_buttons="\x12"
+track_type_control="\x20"
+track_type_metadata="\x21"
+
+# -----------------------------------------------------------------------------
+# Video track settings
+# -----------------------------------------------------------------------------
+video="\xe0"
+flag_interlaced="\x9a"
+field_order="\x9d"
+stereo_mode="\x53\xb8"
+alpha_mode="\x53\xc0"
+pixel_width="\xb0"
+pixel_height="\xba"
+pixel_crop_bottom="\x54\xaa"
+pixel_crop_top="\x54\xbb"
+pixel_crop_left="\x54\xcc"
+pixel_crop_right="\x54\xdd"
+display_width="\x54\xb0"
+display_height="\x54\xba"
+display_unit="\x54\xb2"
+aspect_ratio_type="\x54\xb3"
+colour_space="\x2e\xb5\x24"
+colour="\x55\xb0"
+matrix_coefficients="\x55\xb1"
+bits_per_channel="\x55\xb2"
+chroma_subsampling_horz="\x55\xb3"
+chroma_subsampling_vert="\x55\xb4"
+cb_subsampling_horz="\x55\xb5"
+cb_subsampling_vert="\x55\xb6"
+chroma_siting_horz="\x55\xb7"
+chroma_siting_vert="\x55\xb8"
+range="\x55\xb9"
+transfer_characteristics="\x55\xba"
+primaries="\x55\xbb"
+max_cll="\x55\xbc"
+max_fall="\x55\xbd"
+mastering_metadata="\x55\xd0"
+primary_r_chromaticity_x="\x55\xd1"
+primary_r_chromaticity_y="\x55\xd2"
+primary_g_chromaticity_x="\x55\xd3"
+primary_g_chromaticity_y="\x55\xd4"
+primary_b_chromaticity_x="\x55\xd5"
+primary_b_chromaticity_y="\x55\xd6"
+white_point_chromaticity_x="\x55\xd7"
+white_point_chromaticity_y="\x55\xd8"
+luminance_max="\x55\xd9"
+luminance_min="\x55\xda"
+projection="\x76\x70"
+projection_type="\x76\x71"
+projection_private="\x76\x72"
+projection_pose_yaw="\x76\x73"
+projection_pose_pitch="\x76\x74"
+projection_pose_roll="\x76\x75"
+
+# -----------------------------------------------------------------------------
+# Audio track settings
+# -----------------------------------------------------------------------------
+audio="\xe1"
+sampling_frequency="\xb5"
+output_sampling_frequency="\x78\xb5"
+channels="\x9f"
+bit_depth="\x62\x64"
+
+# -----------------------------------------------------------------------------
+# Codec IDs — string tokens AFL++ can splice into codec_id element bodies
+# -----------------------------------------------------------------------------
+codec_v_vp8="V_VP8"
+codec_v_vp9="V_VP9"
+codec_v_av1="V_AV1"
+codec_v_h264="V_MPEG4/ISO/AVC"
+codec_v_hevc="V_MPEGH/ISO/HEVC"
+codec_v_mpeg2="V_MPEG2"
+codec_v_theora="V_THEORA"
+codec_a_opus="A_OPUS"
+codec_a_vorbis="A_VORBIS"
+codec_a_aac="A_AAC"
+codec_a_mp3="A_MPEG/L3"
+codec_a_flac="A_FLAC"
+codec_a_pcm_float="A_PCM/FLOAT/IEEE"
+codec_a_pcm_int_be="A_PCM/INT/BIG"
+codec_a_pcm_int_le="A_PCM/INT/LIT"
+codec_a_ac3="A_AC3"
+codec_a_eac3="A_EAC3"
+codec_a_dts="A_DTS"
+codec_s_text_utf8="S_TEXT/UTF8"
+codec_s_text_ass="S_TEXT/ASS"
+codec_s_text_ssa="S_TEXT/SSA"
+codec_s_hdmv_pgs="S_HDMV/PGS"
+codec_s_dvb_sub="S_DVBSUB"
+
+# -----------------------------------------------------------------------------
+# Cues (seek index)
+# -----------------------------------------------------------------------------
+cues="\x1c\x53\xbb\x6b"
+cue_point="\xbb"
+cue_time="\xb3"
+cue_track_positions="\xb7"
+cue_track="\xf7"
+cue_cluster_position="\xf1"
+cue_relative_position="\xf0"
+cue_duration="\xb2"
+cue_block_number="\x53\x78"
+cue_codec_state="\xea"
+cue_reference="\xdb"
+cue_ref_time="\x96"
+
+# -----------------------------------------------------------------------------
+# Attachments
+# -----------------------------------------------------------------------------
+attachments="\x19\x41\xa4\x69"
+attached_file="\x61\xa7"
+file_description="\x46\x7e"
+file_name="\x46\x6e"
+file_media_type="\x46\x60"
+file_data="\x46\x5c"
+file_uid="\x46\xae"
+file_referral="\x46\x75"
+
+# -----------------------------------------------------------------------------
+# Chapters
+# -----------------------------------------------------------------------------
+chapters="\x10\x43\xa7\x70"
+edition_entry="\x45\xb9"
+edition_uid="\x45\xbc"
+edition_flag_hidden="\x45\xbd"
+edition_flag_default="\x45\xdb"
+edition_flag_ordered="\x45\xdd"
+chapter_atom="\xb6"
+chapter_uid="\x73\xc4"
+chapter_string_uid="\x56\x54"
+chapter_time_start="\x91"
+chapter_time_end="\x92"
+chapter_flag_hidden="\x98"
+chapter_flag_enabled="\x45\x98"
+chapter_segment_uid="\x6e\x67"
+chapter_skip_type="\x45\x88"
+chapter_display="\x80"
+chap_string="\x85"
+chap_language="\x43\x7c"
+chap_language_bcp47="\x43\x7d"
+chap_country="\x43\x7e"
+chapter_process="\x69\x44"
+chapter_process_codec_id="\x69\x55"
+chapter_process_private="\x45\x0d"
+chapter_process_command="\x69\x11"
+chapter_process_time="\x69\x22"
+chapter_process_data="\x69\x33"
+
+# -----------------------------------------------------------------------------
+# Tags
+# -----------------------------------------------------------------------------
+tags="\x12\x54\xc3\x67"
+tag="\x73\x73"
+targets="\x63\xc0"
+target_type_value="\x68\xca"
+target_type="\x63\xca"
+tag_track_uid="\x63\xc5"
+tag_edition_uid="\x63\xc9"
+tag_chapter_uid="\x63\xc4"
+tag_attachment_uid="\x63\xc6"
+simple_tag="\x67\xc8"
+tag_name="\x45\xa3"
+tag_language="\x44\x7a"
+tag_language_bcp47="\x44\x7b"
+tag_default="\x44\x84"
+tag_default_bogus="\x44\x85"
+tag_string="\x44\x87"
+tag_binary="\x44\x85"
+
+# -----------------------------------------------------------------------------
+# Common integer boundary values — useful for size fields, timestamps,
+# track numbers, and other numeric elements
+# -----------------------------------------------------------------------------
+int_zero="\x00"
+int_one="\x01"
+int_minus_one="\xff"
+int_max_u8="\xff"
+int_max_u16="\xff\xff"
+int_max_u32="\xff\xff\xff\xff"
+int_max_u64="\xff\xff\xff\xff\xff\xff\xff\xff"
+int_max_i64="\x7f\xff\xff\xff\xff\xff\xff\xff"
+int_overflow="\x80\x00\x00\x00\x00\x00\x00\x00"
