@@ -318,6 +318,86 @@ tag_binary="\x44\x85"
 # Common integer boundary values — useful for size fields, timestamps,
 # track numbers, and other numeric elements
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Block header patterns — track number (vint) + 2-byte timecode + flags
+# These appear at the start of every SimpleBlock and Block body.
+# AFL++ rarely generates valid combinations by chance.
+# -----------------------------------------------------------------------------
+# Track 1, timecode 0, keyframe
+block_hdr_track1_key="\x81\x00\x00\x80"
+# Track 1, timecode 0, no keyframe
+block_hdr_track1_nokey="\x81\x00\x00\x00"
+# Track 2, timecode 0, keyframe
+block_hdr_track2_key="\x82\x00\x00\x80"
+# Track 1, timecode 0, Xiph lacing + keyframe
+block_hdr_xiph_lace="\x81\x00\x00\x82"
+# Track 1, timecode 0, EBML lacing + keyframe
+block_hdr_ebml_lace="\x81\x00\x00\x86"
+# Track 1, timecode 0, fixed-size lacing + keyframe
+block_hdr_fixed_lace="\x81\x00\x00\x84"
+
+# -----------------------------------------------------------------------------
+# Xiph lace frame count + size sequences
+# Format: [frame_count - 1] [size_of_frame_1 as xiph vint] ...
+# Xiph vint: sequence of 0xff bytes then remainder; e.g. 255 = \xff\x00
+# -----------------------------------------------------------------------------
+# 2 frames, first frame 100 bytes
+xiph_2frames_100="\x01\x64"
+# 3 frames, first two frames 80 bytes each
+xiph_3frames_80="\x02\x50\x50"
+# 2 frames, first frame 255 bytes (exercises the 0xff prefix path)
+xiph_2frames_255="\x01\xff\x00"
+# 2 frames, first frame 510 bytes (two 0xff prefixes)
+xiph_2frames_510="\x01\xff\xff\x00"
+
+# -----------------------------------------------------------------------------
+# EBML lace frame count + size sequences
+# Format: [frame_count - 1] [first_size as normal vint]
+#         [subsequent sizes as signed vint deltas from previous]
+# -----------------------------------------------------------------------------
+# 2 frames, both 100 bytes (delta = 0, encoded as \x80 in signed vint)
+ebml_2frames_100="\x01\xe4\x80"
+# 3 frames, 100/100/100 bytes
+ebml_3frames_100="\x02\xe4\x80\x80"
+# 2 frames, 100 then 200 bytes (delta +100)
+ebml_2frames_100_200="\x01\xe4\xc8"
+# 2 frames, 200 then 100 bytes (delta -100, exercises negative delta path)
+ebml_2frames_200_100="\x01\x41\xc8\x38"
+
+# -----------------------------------------------------------------------------
+# Codec-specific sync words and frame headers
+# These appear inside block payloads and exercise decoder probing code
+# triggered by avformat_find_stream_info
+# -----------------------------------------------------------------------------
+# MPEG audio sync word
+mpeg_sync="\xff\xfb"
+# AC3 sync word
+ac3_sync="\x0b\x77"
+# DTS sync word
+dts_sync="\x7f\xfe\x80\x01"
+# FLAC stream marker
+flac_marker="fLaC"
+# Vorbis packet type: identification header
+vorbis_id_header="\x01vorbis"
+# Opus identification header magic
+opus_id_header="OpusHead"
+# Opus comment header magic
+opus_comment_header="OpusTags"
+# AAC ADTS sync word (12 bits set)
+aac_adts_sync="\xff\xf1"
+# H.264 start code
+h264_start_code="\x00\x00\x00\x01"
+# H.265/HEVC start code
+hevc_start_code="\x00\x00\x00\x01"
+# VP8 frame tag (key frame, common profile)
+vp8_keyframe="\x00\x9d\x01\x2a"
+# AV1 OBU temporal delimiter
+av1_temporal_delim="\x12\x00"
+
+# -----------------------------------------------------------------------------
+# Common integer boundary values — useful for size fields, timestamps,
+# track numbers, and other numeric elements
+# -----------------------------------------------------------------------------
 int_zero="\x00"
 int_one="\x01"
 int_minus_one="\xff"
