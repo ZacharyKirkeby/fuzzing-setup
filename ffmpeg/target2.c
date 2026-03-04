@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 __AFL_FUZZ_INIT();
@@ -87,11 +88,6 @@ int main(void) {
 
         int ret = avformat_open_input(&fmt_ctx, NULL, NULL, NULL);
         if (ret == 0) {
-            /*
-             * avformat_open_input succeeded: FFmpeg now owns both fmt_ctx
-             * and fmt_ctx->pb (avio_ctx). Do NOT free them separately —
-             * avformat_close_input handles both.
-             */
             avformat_find_stream_info(fmt_ctx, NULL);
 
             AVPacket *pkt = av_packet_alloc();
@@ -103,12 +99,7 @@ int main(void) {
 
             avformat_close_input(&fmt_ctx); /* frees fmt_ctx and avio_ctx */
         } else {
-            /*
-             * avformat_open_input failed: it freed fmt_ctx and set it to
-             * NULL, but it did NOT free avio_ctx — we must do that here.
-             */
             avio_context_free(&avio_ctx);
-            /* fmt_ctx is already NULL; this is a no-op but kept for clarity */
             avformat_free_context(fmt_ctx);
         }
     }

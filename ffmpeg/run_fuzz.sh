@@ -8,7 +8,7 @@ DICT="$PWD/matroska.dict"
 OUT="$ROOT/out"
 
 # ---------------------------------------------------------------------------
-# Preflight checks
+# Pre checks
 # ---------------------------------------------------------------------------
 if [ ! -f "$BINARY" ]; then
     echo "[-] fuzz_target not found. Run build_env.sh first."
@@ -28,7 +28,7 @@ fi
 mkdir -p "$OUT"
 
 # ---------------------------------------------------------------------------
-# Verify instrumentation and ASan linkage before committing to a long run
+# Verify instrumentation and ASan linkage
 # ---------------------------------------------------------------------------
 echo "[*] Checking binary is executable..."
 if [ ! -x "$BINARY" ]; then
@@ -37,9 +37,6 @@ if [ ! -x "$BINARY" ]; then
 fi
 
 echo "[*] Checking AFL++ instrumentation and ASan linkage..."
-# afl-showmap drives the AFL shmem handshake properly, so the persistent-mode
-# __AFL_LOOP won't block. We pipe a small seed through it to confirm both that
-# coverage edges are recorded and that ASan doesn't immediately abort.
 ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 \
     echo -n "RIFF" | afl-showmap -o /dev/null -q -t 5000 -- "$BINARY" 2>/dev/null || true
 
@@ -58,7 +55,7 @@ fi
 # ---------------------------------------------------------------------------
 # Run AFL++
 #
-# Key flags:
+# flags:
 #   -m none        Required with ASan — ASan's large mappings confuse AFL's
 #                  default memory limit and cause spurious OOM kills.
 #   -t 5000        5-second per-execution timeout; Matroska parsing can be

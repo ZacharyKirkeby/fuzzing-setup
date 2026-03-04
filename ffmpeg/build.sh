@@ -34,16 +34,14 @@ git checkout n6.1
 # ---------------------------------------------------------------------------
 # Build FFmpeg instrumented with AFL++ + ASan
 #
-# Key decisions:
-#   - AFL_USE_ASAN=1 instruments the static libraries with ASan at compile
-#     time. We do NOT also pass -fsanitize=address at link time — doing both
-#     causes duplicate runtime init and potential symbol conflicts.
+# Flags, per AFL documentation:
+#   - AFL_USE_ASAN=1
 #   - --disable-stripping + -g + -fno-omit-frame-pointer keep stack traces
-#     symbolised so ASan reports are actually readable.
-#   - Decoders are enabled so avformat_find_stream_info can fully exercise
-#     the demuxer's packet-reading paths; without them it exits early.
-#   - libswresample is built because avformat pulls it in transitively;
-#     omitting it causes undefined-symbol linker errors.
+#     so ASan reports are actually readable.
+#   - Decoders are enabled so avformat_find_stream_info can use
+#     the demuxer's packet-reading paths
+#   - libswresample is built because avformat pulls it;
+#     omitting it causes undefined-symbol linker errors
 # ---------------------------------------------------------------------------
 echo "[*] Cleaning..."
 make distclean 2>/dev/null || true
@@ -91,10 +89,6 @@ make -j"$(nproc)"
 
 # ---------------------------------------------------------------------------
 # Build the fuzz harness
-#
-# Link order matters for static archives: higher-level libs first.
-# Do NOT add -fsanitize=address here — AFL_USE_ASAN=1 already handled it
-# during the FFmpeg build and afl-clang-fast propagates it at link time.
 # ---------------------------------------------------------------------------
 cd ..
 
@@ -107,6 +101,7 @@ cp ../target2.c .
 
 echo "[*] Building harness..."
 afl-clang-fast \
+    std=gnu11 \
     -g -fno-omit-frame-pointer \
     target2.c \
     FFmpeg/libavformat/libavformat.a \
